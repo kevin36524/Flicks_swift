@@ -18,6 +18,7 @@ class MoviesViewController: UIViewController {
     @IBOutlet weak var tableView: UITableView!
     var movieType: MovieType?
     var movies: [Movie]?
+    var refreshControl: UIRefreshControl!
     var filteredMovies: [Movie]? {
         didSet {
             self.tableView.reloadData()
@@ -31,10 +32,26 @@ class MoviesViewController: UIViewController {
         self.tableView.register(UINib(nibName: "MovieTableViewCell", bundle: Bundle.main), forCellReuseIdentifier: MovieTableViewCell.reuseID)
         self.searchBar.delegate = self
 
-        self.fetchData()
+        self.addRefreshController()
+        
+        self.fetchData(completion: nil)
         // Do any additional setup after loading the view.
     }
 
+    func addRefreshController() {
+        self.refreshControl = UIRefreshControl();
+        self.refreshControl.addTarget(self, action: #selector(refresh) , for: .valueChanged)
+        self.tableView.insertSubview(refreshControl, at: 0);
+    }
+    
+    func refresh() {
+        self.refreshControl.beginRefreshing()
+        self.fetchData() {
+            self.refreshControl.endRefreshing()
+            self.searchBar.text = "";
+        };
+    }
+    
     func urlToFetch() -> URL {
         var url = "https://api.themoviedb.org/3/movie/now_playing?api_key=a07e22bc18f5cb106bfe4cc1f83ad8ed";
         
@@ -45,7 +62,7 @@ class MoviesViewController: UIViewController {
         return URL(string: url)!
     }
     
-    func fetchData() {
+    func fetchData(completion:(()->Void)?) {
         let url = urlToFetch()
         URLSession.shared.dataTask(with: url) { (data, response, error) in
             if let data = data {
@@ -55,6 +72,9 @@ class MoviesViewController: UIViewController {
                     DispatchQueue.main.async {
                         self.movies = Movie.moviesFrom(array: resultArr)
                         self.filteredMovies = self.movies
+                        if let completion = completion {
+                            completion();
+                        }
                     }
                 }
             }
