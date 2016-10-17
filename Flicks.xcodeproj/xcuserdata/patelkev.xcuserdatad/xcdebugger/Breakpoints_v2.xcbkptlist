@@ -20,11 +20,11 @@
             ignoreCount = "0"
             continueAfterRunningActions = "No"
             filePath = "Flicks/View Controller/MoviesViewController.swift"
-            timestampString = "498373774.67862"
+            timestampString = "498378416.668911"
             startingColumnNumber = "9223372036854775807"
             endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "49"
-            endingLineNumber = "49"
+            startingLineNumber = "52"
+            endingLineNumber = "52"
             landmarkName = "fetchData()"
             landmarkType = "7">
          </BreakpointContent>

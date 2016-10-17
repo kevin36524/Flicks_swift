@@ -14,9 +14,11 @@ class MoviesViewController: UIViewController {
         case TopRated, NowPlaying
     }
     
+    @IBOutlet weak var searchBar: UISearchBar!
     @IBOutlet weak var tableView: UITableView!
     var movieType: MovieType?
-    var movies: [Movie]? {
+    var movies: [Movie]?
+    var filteredMovies: [Movie]? {
         didSet {
             self.tableView.reloadData()
         }
@@ -27,6 +29,7 @@ class MoviesViewController: UIViewController {
         self.tableView.dataSource = self
         self.tableView.delegate = self
         self.tableView.register(UINib(nibName: "MovieTableViewCell", bundle: Bundle.main), forCellReuseIdentifier: MovieTableViewCell.reuseID)
+        self.searchBar.delegate = self
 
         self.fetchData()
         // Do any additional setup after loading the view.
@@ -51,6 +54,7 @@ class MoviesViewController: UIViewController {
                 if let resultArr = dictionary?["results"] as? [[String:Any]] {
                     DispatchQueue.main.async {
                         self.movies = Movie.moviesFrom(array: resultArr)
+                        self.filteredMovies = self.movies
                     }
                 }
             }
@@ -61,23 +65,19 @@ class MoviesViewController: UIViewController {
         super.didReceiveMemoryWarning()
         // Dispose of any resources that can be recreated.
     }
-    
-
-    /*
-    // MARK: - Navigation
-
-    // In a storyboard-based application, you will often want to do a little preparation before navigation
-    override func prepare(for segue: UIStoryboardSegue, sender: Any?) {
-        // Get the new view controller using segue.destinationViewController.
-        // Pass the selected object to the new view controller.
-    }
-    */
-
 }
 
 extension MoviesViewController : UITableViewDelegate {
     func tableView(_ tableView: UITableView, heightForRowAt indexPath: IndexPath) -> CGFloat {
         return 180;
+    }
+}
+
+extension MoviesViewController: UISearchBarDelegate {
+    func searchBar(_ searchBar: UISearchBar, textDidChange searchText: String) {
+        filteredMovies = searchText.isEmpty ? movies : movies?.filter ({
+            (($0.title?.range(of: searchText, options: .caseInsensitive, range: nil, locale: nil)) != nil)
+        })
     }
 }
 
@@ -88,12 +88,12 @@ extension MoviesViewController : UITableViewDataSource {
     }
     
     func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
-        return movies?.count ?? 0;
+        return filteredMovies?.count ?? 0;
     }
     
     func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
         let cell = tableView.dequeueReusableCell(withIdentifier: MovieTableViewCell.reuseID) as! MovieTableViewCell
-        if let movie = movies?[indexPath.row] {
+        if let movie = filteredMovies?[indexPath.row] {
             cell.configureCellWith(movie: movie);
         }
         return cell;
